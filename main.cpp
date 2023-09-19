@@ -1,17 +1,74 @@
-#include <windows.h>
+#include <Windows.h>
 
-const char g_szClassName[] = "myWindowClass";
+// Step 1: Declare the Window procedure
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-        case WM_CLOSE:
-            DestroyWindow(hwnd);
-            break;
+// Step 2: Declare the entry point of the application
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    // Step 3: Register the window class
+    const char* CLASS_NAME = "MyWindowClass";
+
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = CLASS_NAME;
+
+    RegisterClass(&wc);
+
+    // Step 4: Create the window
+    HWND hwnd = CreateWindowEx(
+            0,                              // Optional window styles
+            CLASS_NAME,                     // Window class name
+            "Movable Rectangle",            // Window title
+            WS_OVERLAPPEDWINDOW,            // Window style
+
+            // Size and position
+            CW_USEDEFAULT, CW_USEDEFAULT, 500, 500,
+
+            NULL,       // Parent window
+            NULL,       // Menu
+            hInstance,  // Instance handle
+            NULL        // Additional application data
+    );
+
+    if (hwnd == NULL)
+    {
+        return 0;
+    }
+
+    // Step 5: Show the window
+    ShowWindow(hwnd, nCmdShow);
+
+    // Step 6: Run the message loop
+    MSG msg = {};
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    return 0;
+}
+
+// Step 7: Implement the Window procedure
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    static RECT rect = { 100, 100, 400, 400 }; // Initial rectangle position
+
+    switch (uMsg)
+    {
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-            RECT rect = { 100, 100, 400, 400 };
+
+            // Clear the window with a white background
+            HBRUSH hBackgroundBrush = CreateSolidBrush(RGB(255, 255, 255));
+            FillRect(hdc, &ps.rcPaint, hBackgroundBrush);
+            DeleteObject(hBackgroundBrush);
+
+            // Draw the rectangle
             HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
             FillRect(hdc, &rect, hBrush);
             DeleteObject(hBrush);
@@ -19,60 +76,43 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             EndPaint(hwnd, &ps);
             return 0;
         }
+
+        case WM_KEYDOWN:
+        {
+            int xPos = rect.left;
+            int yPos = rect.top;
+
+            switch (wParam)
+            {
+                case VK_LEFT:
+                    xPos -= 10; // Move left by 10 pixels
+                    break;
+
+                case VK_RIGHT:
+                    xPos += 10; // Move right by 10 pixels
+                    break;
+
+                case VK_UP:
+                    yPos -= 10; // Move up by 10 pixels
+                    break;
+
+                case VK_DOWN:
+                    yPos += 10; // Move down by 10 pixels
+                    break;
+            }
+
+            // Update the rectangle position
+            SetRect(&rect, xPos, yPos, xPos + (rect.right - rect.left), yPos + (rect.bottom - rect.top));
+
+            // Trigger a repaint to update the window
+            InvalidateRect(hwnd, NULL, TRUE);
+            return 0;
+        }
+
         case WM_DESTROY:
             PostQuitMessage(0);
-            break;
-        default:
-            return DefWindowProc(hwnd, msg, wParam, lParam);
-    }
-    return 0;
-}
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine, int nCmdShow) {
-    WNDCLASSEX wc;
-    HWND hwnd;
-    MSG Msg;
-
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = 0;
-    wc.lpfnWndProc = WndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = g_szClassName;
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-    if (!RegisterClassEx(&wc)) {
-        MessageBox(NULL, "Window Registration Failed!", "Error!",
-                   MB_ICONEXCLAMATION | MB_OK);
-        return 0;
+            return 0;
     }
 
-    hwnd = CreateWindowEx(
-            WS_EX_CLIENTEDGE,
-            g_szClassName,
-            "The Rolling Sprite",
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT, CW_USEDEFAULT, 512, 512,
-            NULL, NULL, hInstance, NULL);
-
-    if (hwnd == NULL) {
-        MessageBox(NULL, "Window Creation Failed!", "Error!",
-                   MB_ICONEXCLAMATION | MB_OK);
-        return 0;
-    }
-
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
-
-    while (GetMessage(&Msg, NULL, 0, 0) > 0) {
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-    }
-    return Msg.wParam;
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
