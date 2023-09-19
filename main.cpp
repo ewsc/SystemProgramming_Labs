@@ -7,6 +7,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_CLOSE:
             DestroyWindow(hwnd);
             break;
+        case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            RECT rect = { 100, 100, 400, 400 };
+            HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
+            FillRect(hdc, &rect, hBrush);
+            DeleteObject(hBrush);
+
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
