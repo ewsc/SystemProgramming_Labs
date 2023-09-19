@@ -21,10 +21,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             0,                              // Optional window styles
             CLASS_NAME,                     // Window class name
             "Movable Rectangle",            // Window title
-            WS_OVERLAPPEDWINDOW,            // Window style
+            WS_POPUP,                       // Window style
 
             // Size and position
-            CW_USEDEFAULT, CW_USEDEFAULT, 500, 500,
+            0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
 
             NULL,       // Parent window
             NULL,       // Menu
@@ -77,31 +77,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return 0;
         }
 
-        case WM_KEYDOWN:
+        case WM_MOUSEWHEEL:
         {
             int xPos = rect.left;
             int yPos = rect.top;
+            int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
-            switch (wParam)
+            // Check if Shift key is being held down
+            if (GetKeyState(VK_SHIFT) & 0x8000)
             {
-                case VK_LEFT:
-                    xPos -= 10; // Move left by 10 pixels
-                    break;
-
-                case VK_RIGHT:
-                    xPos += 10; // Move right by 10 pixels
-                    break;
-
-                case VK_UP:
-                    yPos -= 10; // Move up by 10 pixels
-                    break;
-
-                case VK_DOWN:
-                    yPos += 10; // Move down by 10 pixels
-                    break;
+                // Shift+Scroll: Change position in the y-axis
+                yPos -= delta;
+            }
+            else
+            {
+                // Scroll: Change size in the x-axis
+                int width = rect.right - rect.left;
+                width += delta;
+                if (width < 0)
+                    width = 0;
+                xPos = rect.left + (rect.right - rect.left - width) / 2;
             }
 
-            // Update the rectangle position
+            // Update the rectangle position and size
             SetRect(&rect, xPos, yPos, xPos + (rect.right - rect.left), yPos + (rect.bottom - rect.top));
 
             // Trigger a repaint to update the window
