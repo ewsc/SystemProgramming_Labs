@@ -118,12 +118,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             int delta = GET_WHEEL_DELTA_WPARAM(wParam);
             if (GetKeyState(VK_SHIFT) & 0x8000) {
                 if (delta > 0) {
-                    if (IsPointInsideWindow(hwnd, xPos - step * 3, yPos)) {
+                    if (IsPointInsideWindow(hwnd, xPos - step * 2, yPos)) {
                         xPos -= step;
+                    }
+                    else {
+                        xPos += step * 3;
                     }
                 } else if (delta < 0) {
                     if (IsPointInsideWindow(hwnd, (xPos + 55) + step * 2, yPos)) {
                         xPos += step;
+                    }
+                    else {
+                        xPos -= step * 3;
                     }
                 }
             }
@@ -132,13 +138,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if (IsPointInsideWindow(hwnd, xPos, yPos - step * 2)) {
                         yPos -= step;
                     }
+                    else {
+                        yPos += step * 3;
+                    }
                 } else if (delta < 0) {
                     if (IsPointInsideWindow(hwnd, xPos, (yPos + 55) + step * 2)) {
                         yPos += step;
                     }
+                    else {
+                        yPos -= step * 3;
+                    }
                 }
             }
-            SetRect(&rect, xPos, yPos, xPos + (rect.right - rect.left), yPos + (rect.bottom - rect.top));
+
+            SetRect(&rect, xPos, yPos, xPos + 55, yPos + 55);
             InvalidateRect(hwnd, nullptr, TRUE);
             return 0;
         }
