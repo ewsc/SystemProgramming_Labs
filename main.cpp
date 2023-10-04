@@ -52,11 +52,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return 0;
 }
 
+BOOL IsPointInsideWindow(HWND hwnd, int x, int y)
+{
+    RECT rect;
+    GetClientRect(hwnd, &rect);
+    POINT point = { x, y };
+    return PtInRect(&rect, point);
+}
+
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     static HBITMAP hBitmap = nullptr;
-    static RECT rect = { 100, 100, 400, 400 }; 
+    static RECT rect = { 50, 50, 100, 100 };
 
     switch (uMsg)
     {
@@ -104,24 +112,33 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_MOUSEWHEEL:
         {
+            int step = 5;
             int xPos = rect.left;
             int yPos = rect.top;
             int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-            if (GetKeyState(VK_SHIFT) & 0x8000)
-            {
-                yPos -= delta;
+            if (GetKeyState(VK_SHIFT) & 0x8000) {
+                if (delta > 0) {
+                    if (IsPointInsideWindow(hwnd, xPos - step * 3, yPos)) {
+                        xPos -= step;
+                    }
+                } else if (delta < 0) {
+                    if (IsPointInsideWindow(hwnd, (xPos + 55) + step * 2, yPos)) {
+                        xPos += step;
+                    }
+                }
             }
-            else
-            {
-                int width = rect.right - rect.left;
-                width += delta;
-                if (width < 0)
-                    width = 0;
-                xPos = rect.left + (rect.right - rect.left - width) / 2;
+            else {
+                if (delta > 0) {
+                    if (IsPointInsideWindow(hwnd, xPos, yPos - step * 2)) {
+                        yPos -= step;
+                    }
+                } else if (delta < 0) {
+                    if (IsPointInsideWindow(hwnd, xPos, (yPos + 55) + step * 2)) {
+                        yPos += step;
+                    }
+                }
             }
             SetRect(&rect, xPos, yPos, xPos + (rect.right - rect.left), yPos + (rect.bottom - rect.top));
-
-          
             InvalidateRect(hwnd, nullptr, TRUE);
             return 0;
         }
