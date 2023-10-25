@@ -75,6 +75,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
                 std::wstring text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
+                // Remove spaces from the text
+                //text.erase(std::remove(text.begin(), text.end(), ' '), text.end());
+
                 int textLength = static_cast<int>(text.length());
                 int numRows = static_cast<int>(sqrt(textLength)); // Number of rows (adjust as needed)
                 int numCols = (textLength + numRows - 1) / numRows; // Number of columns
@@ -82,11 +85,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 int cellWidth = rect.right / numCols; // Width of each cell
                 int cellHeight = rect.bottom / numRows; // Height of each cell
 
+                int index = 0; // Current index in the text
+
                 for (int row = 0; row < numRows; ++row)
                 {
                     for (int col = 0; col < numCols; ++col)
                     {
-                        int index = row * numCols + col;
+                        // Skip over spaces in the text
+                        while (index < textLength && text[index] == ' ')
+                        {
+                            ++index;
+                        }
+
                         if (index < textLength)
                         {
                             std::wstring cellText = text.substr(index, 1);
@@ -97,6 +107,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                             // Draw the cell text within the cell rectangle
                             DrawText(hdc, reinterpret_cast<LPCSTR>(cellText.c_str()), -1, &cellRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+                            ++index; // Move to the next character in the text
                         }
                     }
                 }
