@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -63,14 +64,42 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
+            RECT rect;
+            GetClientRect(hwnd, &rect); // Get the client area rectangle
+
             // Load and display the text from the text file
-            const char *filePath = "Resources/example.txt";
+            char filePath[] = "Resources/example.txt";
             std::ifstream file(filePath);
 
             if (file.is_open())
             {
                 std::wstring text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                TextOut(hdc, 10, 10, reinterpret_cast<LPCSTR>(text.c_str()), static_cast<int>(text.length()) * 3);
+
+                int textLength = static_cast<int>(text.length());
+                int numRows = static_cast<int>(sqrt(textLength)); // Number of rows (adjust as needed)
+                int numCols = (textLength + numRows - 1) / numRows; // Number of columns
+
+                int cellWidth = rect.right / numCols; // Width of each cell
+                int cellHeight = rect.bottom / numRows; // Height of each cell
+
+                for (int row = 0; row < numRows; ++row)
+                {
+                    for (int col = 0; col < numCols; ++col)
+                    {
+                        int index = row * numCols + col;
+                        if (index < textLength)
+                        {
+                            std::wstring cellText = text.substr(index, 1);
+                            RECT cellRect = {
+                                    col * cellWidth, row * cellHeight,
+                                    (col + 1) * cellWidth, (row + 1) * cellHeight
+                            };
+
+                            // Draw the cell text within the cell rectangle
+                            DrawText(hdc, reinterpret_cast<LPCSTR>(cellText.c_str()), -1, &cellRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                        }
+                    }
+                }
             }
             else
             {
