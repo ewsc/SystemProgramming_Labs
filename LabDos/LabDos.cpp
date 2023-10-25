@@ -77,7 +77,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetClientRect(hwnd, &rect); // Get the client area rectangle
 
             // Load and display the text from the text file
-            char filePath[] = "Resources/example.txt";
+            char filePath[] = "Resources/example2.txt";
             std::ifstream file(filePath);
 
             if (file.is_open())
