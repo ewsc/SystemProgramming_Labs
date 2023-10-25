@@ -9,7 +9,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     RegisterClass(&wc);
-    HWND hwnd = CreateWindowEx(0, CLASS_NAME, "Transparent Image", WS_POPUP,
+    HWND hwnd = CreateWindowEx(0, CLASS_NAME, "Window", WS_POPUP,
                                0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
                                nullptr, nullptr, hInstance, nullptr);
     if (hwnd == nullptr) {
