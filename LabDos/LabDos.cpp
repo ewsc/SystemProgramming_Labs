@@ -21,19 +21,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HWND hwnd = CreateWindowEx(
             0,                              // Optional window styles
             CLASS_NAME,                     // Window class name
-            "Text File Viewer",            // Window title
+            "Lab2",            // Window title
             WS_OVERLAPPEDWINDOW,            // Window style
 
             // Position and size
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-            NULL,                           // Parent window
-            NULL,                           // Menu
+            nullptr,                           // Parent window
+            nullptr,                           // Menu
             hInstance,                      // Instance handle
-            NULL                            // Additional application data
+            nullptr                            // Additional application data
     );
 
-    if (hwnd == NULL)
+    if (hwnd == nullptr)
     {
         return 0;
     }
@@ -41,8 +41,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(hwnd, nCmdShow);
 
     // Main message loop
-    MSG msg = { 0 };
-    while (GetMessage(&msg, NULL, 0, 0))
+    MSG msg = { nullptr };
+    while (GetMessage(&msg, nullptr, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -59,10 +59,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
             return 0;
 
+        case WM_SIZE:
+            // Trigger a repaint when the window size changes
+
+            InvalidateRect(hwnd, nullptr, TRUE);
+            return 0;
+
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
+
+            HBRUSH hBackgroundBrush = CreateSolidBrush(RGB(255, 255, 255));
+            FillRect(hdc, &ps.rcPaint, hBackgroundBrush);
 
             RECT rect;
             GetClientRect(hwnd, &rect); // Get the client area rectangle
@@ -74,9 +83,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (file.is_open())
             {
                 std::wstring text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-                // Remove spaces from the text
-                //text.erase(std::remove(text.begin(), text.end(), ' '), text.end());
 
                 int textLength = static_cast<int>(text.length());
                 int numRows = static_cast<int>(sqrt(textLength)); // Number of rows (adjust as needed)
