@@ -3,10 +3,10 @@ project(SysP)
 
 set(CMAKE_CXX_STANDARD 14)
 
-include_directories(L1)
-include_directories(L2)
+include_directories(Lab1)
+include_directories(Lab2)
 
 add_executable(SysP
-        L1/main.cpp
-        L1/main.h
-        L2/main.cpp)
+        Lab1/main.cpp
+        Lab1/main.h
+        Lab2/main.cpp)
