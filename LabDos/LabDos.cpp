@@ -89,7 +89,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 int numCols = (textLength + numRows - 1) / numRows; // Number of columns
 
                 int cellWidth = rect.right / numCols; // Width of each cell
-                int cellHeight = rect.bottom / numRows; // Height of each cell
+                int cellHeight = rect.bottom / numRows + 10; // Height of each cell
 
                 int index = 0; // Current index in the text
 
