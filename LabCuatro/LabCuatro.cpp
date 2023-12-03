@@ -1,68 +1,76 @@
 #include <Windows.h>
 #include <iostream>
-#include <string>
-#include <chrono>
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
-// Function to be executed by the first thread
-DWORD WINAPI ThreadOneFunction(LPVOID lpParam) {
-    std::string threadName = reinterpret_cast<const char*>(lpParam);
-    std::cout << "Thread Name: " << threadName << std::endl;
+const int ArrayCount = 10;
+const int NumbersPerArray = 100;
 
-    // Count from 0 to 131337 with a 1-second delay
-    for (int i = 0; i <= 131337; i++) {
-        std::cout << "Thread One: " << i << std::endl;
-        Sleep(1000);
-    }
-
-    return 0;
-}
-
-// Function to be executed by the second thread
-DWORD WINAPI ThreadTwoFunction(LPVOID lpParam) {
-    std::string threadName = reinterpret_cast<const char*>(lpParam);
-    std::cout << "Thread Name: " << threadName << std::endl;
-
-    // Add to 1 until reaching 34450 or more
-    int count = 0;
-    while (count < 34450) {
-        count++;
-        std::cout << "Thread Two: " << count << std::endl;
-        Sleep(1000);
-    }
-
-    return 0;
-}
-
-// Function to be executed by the third thread
-DWORD WINAPI ThreadThreeFunction(LPVOID lpParam) {
-    std::string threadName = reinterpret_cast<const char*>(lpParam);
-    std::cout << "Thread Name: " << threadName << std::endl;
-
-    // Show current time
-    while (true) {
-        auto now = std::chrono::system_clock::now();
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-        std::cout << "Thread Three: " << std::ctime(&currentTime);
-        Sleep(1000);
-    }
-
+// Function to be executed by the sorting threads
+DWORD WINAPI SortArray(LPVOID lpParam) {
+    std::vector<int>* array = reinterpret_cast<std::vector<int>*>(lpParam);
+    std::sort(array->begin(), array->end());
     return 0;
 }
 
 int main() {
-    // Create three threads
-    HANDLE threads[3];
-    const char* threadNames[3] = { "Thread 1", "Thread 2", "Thread 3" };
+    // Read integers from file and distribute them into arrays
+    std::ifstream inputFile("Resources/input.txt");
+    if (!inputFile) {
+        std::cerr << "Failed to open input file." << std::endl;
+        return 1;
+    }
 
-    threads[0] = CreateThread(NULL, 0, ThreadOneFunction, (LPVOID)threadNames[0], 0, NULL);
-    threads[1] = CreateThread(NULL, 0, ThreadTwoFunction, (LPVOID)threadNames[1], 0, NULL);
-    threads[2] = CreateThread(NULL, 0, ThreadThreeFunction, (LPVOID)threadNames[2], 0, NULL);
+    std::vector<std::vector<int>> arrays(ArrayCount, std::vector<int>(NumbersPerArray));
+
+    for (int i = 0; i < ArrayCount; i++) {
+        for (int j = 0; j < NumbersPerArray; j++) {
+            inputFile >> arrays[i][j];
+        }
+    }
+
+    inputFile.close();
+
+    // Display the unsorted arrays
+    std::cout << "Unsorted Arrays:" << std::endl;
+    for (int i = 0; i < ArrayCount; i++) {
+        std::cout << "Array " << i + 1 << ": ";
+        for (int j = 0; j < NumbersPerArray; j++) {
+            std::cout << arrays[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Create two threads to sort the arrays
+    HANDLE threads[ArrayCount];
+
+    int currentArrayIndex = 0;
+
+    for (int i = 0; i < ArrayCount; i++) {
+        threads[i] = CreateThread(NULL, 0, SortArray, (LPVOID)(&arrays[currentArrayIndex]), 0, NULL);
+        if (threads[i] == NULL) {
+            std::cerr << "Failed to create thread " << i << std::endl;
+            return 1;
+        }
+        currentArrayIndex++;
+    }
 
     // Wait for all threads to finish
-    WaitForMultipleObjects(3, threads, TRUE, INFINITE);
+    WaitForMultipleObjects(ArrayCount, threads, TRUE, INFINITE);
+
+    // Display the sorted arrays
+    std::cout << "Sorted Arrays:" << std::endl;
+    for (int i = 0; i < ArrayCount; i++) {
+        std::cout << "Array " << i + 1 << ": ";
+        for (int j = 0; j < NumbersPerArray; j++) {
+            std::cout << arrays[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 
     // Close thread handles
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < ArrayCount; i++) {
         CloseHandle(threads[i]);
     }
 
