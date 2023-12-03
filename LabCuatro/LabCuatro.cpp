@@ -7,15 +7,25 @@
 const int ArrayCount = 10;
 const int NumbersPerArray = 100;
 
-// Function to be executed by the sorting threads
 DWORD WINAPI SortArray(LPVOID lpParam) {
-    std::vector<int>* array = reinterpret_cast<std::vector<int>*>(lpParam);
+    auto* array = reinterpret_cast<std::vector<int>*>(lpParam);
     std::sort(array->begin(), array->end());
     return 0;
 }
 
+std::vector<int> MergeSortArrays(const std::vector<std::vector<int>>& arrays) {
+    std::vector<int> mergedArray;
+
+    for (const auto& array : arrays) {
+        mergedArray.insert(mergedArray.end(), array.begin(), array.end());
+    }
+
+    std::sort(mergedArray.begin(), mergedArray.end());
+
+    return mergedArray;
+}
+
 int main() {
-    // Read integers from file and distribute them into arrays
     std::ifstream inputFile("Resources/input.txt");
     if (!inputFile) {
         std::cerr << "Failed to open input file." << std::endl;
@@ -32,7 +42,6 @@ int main() {
 
     inputFile.close();
 
-    // Display the unsorted arrays
     std::cout << "Unsorted Arrays:" << std::endl;
     for (int i = 0; i < ArrayCount; i++) {
         std::cout << "Array " << i + 1 << ": ";
@@ -41,25 +50,23 @@ int main() {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 
-    // Create two threads to sort the arrays
     HANDLE threads[ArrayCount];
 
     int currentArrayIndex = 0;
 
     for (int i = 0; i < ArrayCount; i++) {
-        threads[i] = CreateThread(NULL, 0, SortArray, (LPVOID)(&arrays[currentArrayIndex]), 0, NULL);
-        if (threads[i] == NULL) {
+        threads[i] = CreateThread(nullptr, 0, SortArray, (LPVOID)(&arrays[currentArrayIndex]), 0, nullptr);
+        if (threads[i] == nullptr) {
             std::cerr << "Failed to create thread " << i << std::endl;
             return 1;
         }
         currentArrayIndex++;
     }
 
-    // Wait for all threads to finish
     WaitForMultipleObjects(ArrayCount, threads, TRUE, INFINITE);
 
-    // Display the sorted arrays
     std::cout << "Sorted Arrays:" << std::endl;
     for (int i = 0; i < ArrayCount; i++) {
         std::cout << "Array " << i + 1 << ": ";
@@ -68,10 +75,18 @@ int main() {
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 
-    // Close thread handles
-    for (int i = 0; i < ArrayCount; i++) {
-        CloseHandle(threads[i]);
+    std::vector<int> mergedArray = MergeSortArrays(arrays);
+
+    std::cout << "Merged and Sorted Array:" << std::endl;
+    for (const auto& num : mergedArray) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+
+    for (auto & thread : threads) {
+        CloseHandle(thread);
     }
 
     return 0;
