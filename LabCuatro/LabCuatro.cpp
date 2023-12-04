@@ -3,9 +3,15 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <queue>
 
 const int ArrayCount = 10;
 const int NumbersPerArray = 1000;
+
+struct Task {
+    int id;
+    std::string description;
+};
 
 DWORD WINAPI SortArray(LPVOID lpParam) {
     auto* array = reinterpret_cast<std::vector<int>*>(lpParam);
@@ -55,14 +61,28 @@ int main() {
     }
     std::cout << std::endl;
 
+    std::queue<Task> taskQueue;
+    taskQueue.push({ 1, "Array 1" });
+    taskQueue.push({ 2, "Array 2" });
+    taskQueue.push({ 3, "Array 3" });
+    taskQueue.push({ 4, "Array 4" });
+    taskQueue.push({ 5, "Array 5" });
+    taskQueue.push({ 6, "Array 6" });
+    taskQueue.push({ 7, "Array 7" });
+    taskQueue.push({ 8, "Array 8" });
+    taskQueue.push({ 9, "Array 9" });
+    taskQueue.push({ 10, "Array 10" });
+
     HANDLE threads[ArrayCount];
 
     int currentArrayIndex = 0;
 
-    for (int i = 0; i < ArrayCount; i++) {
-        threads[i] = CreateThread(nullptr, 0, SortArray, (LPVOID)(&arrays[currentArrayIndex]), 0, nullptr);
-        if (threads[i] == nullptr) {
-            std::cerr << "Failed to create thread " << i << std::endl;
+    while (!taskQueue.empty()) {
+        Task task = taskQueue.front();
+        taskQueue.pop();
+        threads[task.id] = CreateThread(nullptr, 0, SortArray, (LPVOID)(&arrays[currentArrayIndex]), 0, nullptr);
+        if (threads[task.id] == nullptr) {
+            std::cerr << "Failed to create thread " << task.id << std::endl;
             return 1;
         }
         currentArrayIndex++;
