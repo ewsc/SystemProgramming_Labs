@@ -1,44 +1,51 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
-void merge(std::vector<int>& arr, int left, int mid, int right) {
-    int i = left;
-    int j = mid + 1;
-    int k = 0;
+const int ArrayCount = 10;
+const int NumbersPerArray = 1000;
 
-    std::vector<int> temp(right - left + 1);
+std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& right) {
+    std::vector<int> merged;
+    merged.reserve(left.size() + right.size());
 
-    while (i <= mid && j <= right) {
-        if (arr[i] <= arr[j]) {
-            temp[k++] = arr[i++];
+    size_t i = 0;
+    size_t j = 0;
+
+    while (i < left.size() && j < right.size()) {
+        if (left[i] <= right[j]) {
+            merged.push_back(left[i++]);
         } else {
-            temp[k++] = arr[j++];
+            merged.push_back(right[j++]);
         }
     }
 
-    while (i <= mid) {
-        temp[k++] = arr[i++];
+    while (i < left.size()) {
+        merged.push_back(left[i++]);
     }
 
-    while (j <= right) {
-        temp[k++] = arr[j++];
+    while (j < right.size()) {
+        merged.push_back(right[j++]);
     }
 
-    for (int p = 0; p < k; p++) {
-        arr[left + p] = temp[p];
-    }
+    return merged;
 }
 
-void mergeSort(std::vector<int>& arr, int left, int right) {
-    if (left < right) {
-        int mid = left + (right - left) / 2;
-
-        mergeSort(arr, left, mid);
-        mergeSort(arr, mid + 1, right);
-
-        merge(arr, left, mid, right);
+std::vector<int> mergeSort(const std::vector<int>& arr) {
+    if (arr.size() <= 1) {
+        return arr;
     }
+
+    size_t mid = arr.size() / 2;
+
+    std::vector<int> left(arr.begin(), arr.begin() + mid);
+    std::vector<int> right(arr.begin() + mid, arr.end());
+
+    left = mergeSort(left);
+    right = mergeSort(right);
+
+    return merge(left, right);
 }
 
 int main() {
@@ -51,24 +58,31 @@ int main() {
         return 1;
     }
 
-    std::vector<int> numbers;
-    int number;
+    std::vector<std::vector<int>> arrays(ArrayCount, std::vector<int>(NumbersPerArray));
 
-    while (inputFile >> number) {
-        numbers.push_back(number);
+    for (int i = 0; i < ArrayCount; i++) {
+        for (int j = 0; j < NumbersPerArray; j++) {
+            inputFile >> arrays[i][j];
+        }
+
+        std::sort(arrays[i].begin(), arrays[i].end());
     }
 
     inputFile.close();
 
-    mergeSort(numbers, 0, numbers.size() - 1);
+    std::vector<int> mergedArray = arrays[0];
 
-    // Display the sorted numbers
-    std::cout << "Sorted Numbers:" << std::endl;
-    for (const auto& num : numbers) {
+    for (int i = 1; i < ArrayCount; i++) {
+        mergedArray = merge(mergedArray, arrays[i]);
+    }
+
+    mergedArray = mergeSort(mergedArray);
+
+    std::cout << "Merged and Sorted Array:" << std::endl;
+    for (const auto& num : mergedArray) {
         std::cout << num << " ";
     }
     std::cout << std::endl;
-
 
     time(&end);
     auto time_taken = double(end - start);

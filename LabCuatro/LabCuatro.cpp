@@ -28,6 +28,7 @@ std::vector<int> MergeSortArrays(const std::vector<std::vector<int>>& arrays) {
 int main() {
     time_t start, end;
     time(&start);
+
     std::ifstream inputFile("Resources/input.txt");
     if (!inputFile) {
         std::cerr << "Failed to open input file." << std::endl;
