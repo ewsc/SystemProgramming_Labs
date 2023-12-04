@@ -5,7 +5,7 @@
 #include <algorithm>
 
 const int ArrayCount = 10;
-const int NumbersPerArray = 100;
+const int NumbersPerArray = 1000;
 
 DWORD WINAPI SortArray(LPVOID lpParam) {
     auto* array = reinterpret_cast<std::vector<int>*>(lpParam);
@@ -26,6 +26,8 @@ std::vector<int> MergeSortArrays(const std::vector<std::vector<int>>& arrays) {
 }
 
 int main() {
+    time_t start, end;
+    time(&start);
     std::ifstream inputFile("Resources/input.txt");
     if (!inputFile) {
         std::cerr << "Failed to open input file." << std::endl;
@@ -89,5 +91,11 @@ int main() {
         CloseHandle(thread);
     }
 
+    time(&end);
+    auto time_taken = double(end - start);
+    std::cout << "Time taken by program is : " << std::fixed
+         << time_taken;
+    std::cout << " sec " << std::endl;
+    std::getchar();
     return 0;
 }
